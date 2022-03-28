@@ -1,0 +1,36 @@
+{% load static %}
+<!DOCTYPE HTML>
+<html lang=en>
+    <head>
+        <title>
+            {% block title %}
+            {% endblock %}
+        </title>
+    </head>
+    <body>
+        <div class="nav-bar">
+            <ul class="nav-list">
+                {% if user.is_authenticated %}
+                    <li class="nav-item">
+                        <a class="nav-link" id="index" href="{% url 'index'%}">Your auditions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="Add-audition" href="{% url 'new project' %}">Add auditions</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="Logout"href="{% url 'logout' %}">Log out</a>
+                    </li>
+                {% else %}
+                    <li class="nav-item">
+                        <a class="nav-link" id="Login" href="{% url 'login'%}">Login</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" id="Register" href="{% url 'register' %}">Register</a>
+                    </li>
+                {% endif %}
+            <ul>
+        </div>
+        {% block body %}
+        {% endblock %}
+    </body>
+</html>
