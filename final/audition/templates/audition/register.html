@@ -1,0 +1,32 @@
+{% extends "audition/layout.html" %}
+
+{% block title %}Register{% endblock %}
+
+{% block body %}
+ <h1 class="page-title">Register</h1>
+
+ <!--Register form-->
+ <div class="form-outer-container">
+     <div class="form-inner-container">
+        <form class="login-form" action="{% url 'register' %}" method="post">
+            {% csrf_token %}
+            <div class="form-fields">
+                <label class="form-label" for="email">Email:</label>
+                <input class="form-field" id="email" type="text" name="email">
+                <label class="form-label" for="username">Username:</label>
+                <input class="form-field" id="username" type="text" name="username">
+                <label class="form-label" for="password">Password:</label>
+                <input class="form-field" id="password" type="password" name="password">
+                <label class="form-label" for="confirmation">Confirm Password:</label>
+                <input class="form-field" id="confirmation" type="text" name="confirmation">
+            </div>
+            <input class="form-button" type="submit" value="Register">
+        </form>
+
+    <!--If form was invalid-->
+    {% if message %}
+        <h4 class="error-message">{{ message }}</h4>
+    {% endif %}
+    <p>Already have an account, <a href="{% url 'login' %}">login here.</a></p>
+ </div>
+{% endblock %}

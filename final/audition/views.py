@@ -5,7 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
 
-from models import Audition, User
+from .models import Audition, User, Script
 
 
 # Index request
@@ -13,9 +13,9 @@ from models import Audition, User
 def index(request):
 
     # Get the user and their auditions
-    user_id = request.get["user.id"]
-    user = User.objects.get(pk=user_id)
-    auditions = Audition.objects.get(user=user)
+    user_id = request.user
+    user = User.objects.get(pk=user_id.id)
+    auditions = Audition.objects.filter(user=user)
 
     # Render the index page
     return render(request, "audition/index.html", {
@@ -29,7 +29,7 @@ def login(request):
 
     # If the request is GET then generate the page
     if request.method == "GET":
-        return render(request, "audition/login")
+        return render(request, "audition/login.html")
 
     # Otherwise process the request
     else:
@@ -104,11 +104,8 @@ def logout(request):
 class NewAudition(forms.Form):
     title = forms.CharField(label="Title*")
     role = forms.CharField(label="Role*")
-    script_1 = forms.CharField(label="Script 1", required=False)
-    script_2 = forms.CharField(label="Script 2", required=False)
-    script_3 = forms.CharField(label="Script 3", required=False)
-    script_4 = forms.CharField(label="Script 4", required=False)
-    script_5 = forms.CharField(label="Script 5", required=False)
+    script = forms.CharField(label="Script", required=False)
+    scene = forms.CharField(label="Scene", required=False)
     date = forms.CharField(label="Audition Date*")
 
 
@@ -129,24 +126,75 @@ def new_audtion(request):
         if form.is_valid():
 
             # Process the forms information
-        return HttpResponseRedirect(reverse("index"))
+            user_id = request.user.id
+            user = User.objects.get(pk=user_id)
+            audition = Audition.objects.create(title=form.cleaned_data["title"], role=form.cleaned_data["role"], user=user)
+            audition.save()
+
+            # Seperate the scripts
+            if form.cleaned_data["script"] is not None:
+                scripts = seperate_scripts(form.cleaned_data["script"])
+                scene_form = form.cleaned_data["scene"]
+                scenes = get_scenes(scene_form)
+
+                # Make a new script for every script
+                for i in range(len(scripts)):
+                    script = Script.objects.create(scene=scenes[i], script=scripts[i], audition=audition)
+                    script.save()
+            return HttpResponseRedirect(reverse("index"))
+        
+        # If form was not valid
+        else:
+            return render(request, "audition/new_audition.html", {
+                "form": NewAudition(form),
+                "message": "Please make sure all fields are filled out correctly"
+            })
+
+
+# For seperating scripts
+def seperate_scripts(script):
+    scripts = []
+    stop_point = 0
+    for i in range(len(script)):
+        if script[i:i+3] == "###":
+            script_cut = script[stop_point:i-1]
+            scripts.append(script_cut)
+            stop_point = i + 3
+    return scripts
+
+
+def get_scenes(scene_list):
+    scenes = []
+    stop_point = 0
+    for i in range(len(scene_list)):
+        if scene_list[i] == ",":
+            scene_cut = scene_list[i][stop_point:i]
+            scenes.append(scene_cut)
+            stop_point = i + 1
+    return scenes
 
 
 # Edit audition
 def edit_auditon(request):
+    # Done through JS
     return HttpResponseRedirect(reverse("index"))
 
 
 # Mark done
 def mark_done(request):
+    # Done through JS
     return HttpResponseRedirect(reverse("index"))
 
 
 # Mark undone
 def mark_undone(request):
+    # Done through JS
     return HttpResponseRedirect(reverse("index"))
 
 
 # Delete audition
 def delete_auditon(request):
+    # JS call
+    audition = Audition.objects.get(pk=audition_id)
+    audition.remove()
     return HttpResponseRedirect(reverse("index"))

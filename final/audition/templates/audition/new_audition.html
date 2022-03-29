@@ -1,0 +1,38 @@
+{% extends 'audition/layout.html' %}
+
+{% block title %}New Audition{% endblock %}
+
+{% block body %}
+
+    <!--Form for new auditions-->
+    <div class="form-outer-container">
+        <div class="form-inner-container">
+            <form action="{% url 'new_audition' %}" method="post">
+                {% csrf_token %}
+                <div class="auditon-form">
+                    <label for="title">Title*</label>
+                    {{ form.title }}
+                    <label for="role">Role*</label>
+                    {{ form.role }}
+                    <label for="date">Date*</label>
+                    {{ form.date }}
+                </div>
+                <div class="script-form">
+                    <label for="script">Add your scripts here. If you have multiple scripts then seperate them by using 3 hash's (###)</label>
+                    {{ form.script }}
+                    <label for="scene">Please add the title of your scripts here. If you ave multiple scripts then seperate them by using a comma (,)</label>
+                    {{ form.scene }}
+                </div> 
+                <div class="form-buttons-container">
+                    <input class="form-button" type="submit" value="Add Audition">
+                    <button class="form-button" id='cancel'>Cancel</button>
+                </div>
+            </form>
+
+            <!--Message if from was invalid-->
+            {% if message %}
+                <h4 class="error-message">{{ message }}</h4>
+            {% endif %}
+        </div>
+    </div>
+{% endblock %}

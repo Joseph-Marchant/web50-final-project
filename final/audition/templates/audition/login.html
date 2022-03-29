@@ -1,0 +1,31 @@
+{% extends "audition/layout.html" %}
+
+{% block title %}Login{% endblock %}
+
+{% block body %}
+ <h1 class="page-title">Log In</h1>
+
+ <!--Login form-->
+ <div class="form-outer-container">
+     <div class="form-inner-container">
+        <form class="login-form" action="{% url 'login' %}" method="post">
+            {% csrf_token %}
+            <div class="form-fields">
+                <label class="form-label" for="username">Username:</label>
+                <input class="form-field" id="username" type="text" name="username">
+                <label class="form-label" for="password">Password:</label>
+                <input class="form-field" id="password" type="password" name="password">
+            </div>
+            <input class="form-button" type="submit" value="Login">
+        </form>
+        <div class="form-links" >
+            
+            <!--If form was invalid-->
+            {% if message %}
+                <h4 class="error-message">{{ message }}</h4>
+            {% endif %}
+            <p>Don't have an account, <a href="{% url 'register' %}">register here.</a></p>
+        </div>            
+     </div>
+ </div>
+{% endblock %}

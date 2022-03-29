@@ -3,5 +3,37 @@
     {% block title %}Audition{% endblock %}
 
     {% block body %}
-        <h1>Hello world!</h1>
+
+        <!--All auditons view-->
+        <div class="all-auditions">
+            <h1 class="page-title">Your Auditions</h1>
+
+            <!--If there are auditions, display them-->
+            {% if auditions %}
+                {% for audition in auditions %}
+                    <div class="audition-block">
+                        <div class="audition-info">
+                            <h3 class="audition-title">{{ audition.role }} in {{ audition.title }}</h3>
+                        </div>
+                        <div class="audition-date-block">
+                            <h5 class="audition-date">On {{ audition.date }}</h5>
+                            <button class="audition-buttons" id="view">View</button>
+                            <button class="audition-buttons" id="edit">Edit</button>
+                            <button class="audition-buttons" id="delete">Delete</button>
+                        </div>
+                    </div>
+                {% endfor %}
+            
+                <!--If there are no auditions then display the following-->
+            {% else %}
+                    <div class="audition-block">
+                        <h2 class="no-auditions">No auditions to show</h2>
+                    </div>
+            {% endif %}
+        </div>
+
+        <!--Display for a single audition-->
+        <div class="single-audition">
+
+        </div>
     {% endblock %}
