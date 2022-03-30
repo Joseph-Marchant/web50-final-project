@@ -15,29 +15,31 @@ method = "compose"
 global vid_end
 
 
-def complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, position):
-    # Makes video
+def complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, slate_start, slate_end):
     
     # Generate the text for the slate
+    font = 'Ariel'
+    color = 'white'
+
     # name text
-    name_text = mpy.TextClip(name, font='Ariel', fontsize=120, color='white')
+    name_text = mpy.TextClip(name, font=font, fontsize=120, color=color)
     name_text = name_text.set_position(('center', 0.3), relative=True)
     name_text = name_text.set_start(0)
     name_text = name_text.set_duration(duration)
 
     # agent and pin text
-    agent_text = mpy.TextClip((f"{agent} - {pin}"), font='Ariel', fontsize=80, color='white')
+    agent_text = mpy.TextClip((f"{agent} - {pin}"), font=font, fontsize=80, color=color)
     agent_text = agent_text.set_position(('center', 0.7), relative=True)
     agent_text = agent_text.set_start(0)
     agent_text = agent_text.set_duration(duration)
 
     # Check if the user wants the scene text
-    if scene == "/*-":
+    if scene is None:
         # project and role text
-        project_text = mpy.TextClip((f"{project} - {role}"), font='Ariel', fontsize=100, color='white')
+        project_text = mpy.TextClip((f"{project} - {role}"), font=font, fontsize=100, color=color)
     else:
         # project, role and scene text
-        project_text = mpy.TextClip((f"{project} - {role} - {scene}"), font='Ariel', fontsize=100, color='white')
+        project_text = mpy.TextClip((f"{project} - {role} - {scene}"), font=font, fontsize=100, color=color)
     project_text = project_text.set_position(('center', 0.5), relative=True)
     project_text = project_text.set_start(0)
     project_text = project_text.set_duration(duration)
@@ -60,14 +62,14 @@ def complete(name, agent, pin, project, role, scene, duration, edit_name, clip_n
     vid.close
 
     # Check where the user wants the slate(s) and make the final edit
-    fade = 0.4   
-    if position == 0:
+    fade = -0.4   
+    if slate_start is True and slate_end is True:
         edit = mpy.concatenate_videoclips([slate_clip, crop.crossfadein(
             fade), slate_clip.crossfadein(fade)], padding=-fade, method=method)
-    elif position == 1:
-        edit = mpy.concatenate_videoclips([slate_clip, crop.crossfadein(fade)], padding=-fade, method=method)
-    elif position == 2:
-        edit = mpy.concatenate_videoclips([crop, slate_clip.crossfadein(fade)], padding=-fade, method=method)
+    elif slate_start is True and slate_end is not True:
+        edit = mpy.concatenate_videoclips([slate_clip, crop.crossfadein(fade)], padding=fade, method=method)
+    elif slate_start is not True and slate_end is True:
+        edit = mpy.concatenate_videoclips([crop, slate_clip.crossfadein(fade)], padding=fade, method=method)
     else:
         edit = crop
     edit.write_videofile(edit_name, threads=threads, fps=fps, codec=vcodec,
@@ -75,7 +77,7 @@ def complete(name, agent, pin, project, role, scene, duration, edit_name, clip_n
     slate_clip.close
     crop.close
     
-    return edit_name
+    return
 
 
 # Update the global end_vid variable
@@ -89,7 +91,7 @@ def set_end(clip_name):
 
 # Returns the end time of the video
 def get_end():
-    
+
     # Get the end time of the clip
     end = vid_end
 

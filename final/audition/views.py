@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect
 from django.shortcuts import render
 from django.urls import reverse
+import os
 
 from .models import Audition, User, Script
 from .movie import complete, set_end, get_end, time_validate
@@ -202,7 +203,7 @@ def delete_auditon(request):
 
 
 @login_required(login_url="login")
-def self_tape(request, audition_id, scene_id):
+def self_tape(request, scene_id):
     
     # For the form to submit video
     if request.method == "GET":
@@ -211,10 +212,10 @@ def self_tape(request, audition_id, scene_id):
     # Process the video
     else:
 
-        # Project data for the slate
+        # Project data
         user = User.objects.get(pk=request.user.id)
-        audition = Audition.objects.get(pk=audition_id)
         script = Script.objects.get(pk=scene_id)
+        audition = Audition.objects.get(pk=script.audition.id)
         name = f"{user.firstname} {user.surname}"
         agent = user.agent
         pin = user.pin
@@ -222,6 +223,8 @@ def self_tape(request, audition_id, scene_id):
         project = audition.title
         role = audition.role
         scene = script.scene
+        slate_start = request.POST["slate_start"]
+        slate_end = request.POST["slate_end"]
                          
         # Set the name for the final edit
         if scene is not None:
@@ -262,20 +265,8 @@ def self_tape(request, audition_id, scene_id):
                 "message": check
             })
 
-        # Find out where the user wants the slates
-        slate_start = request.POST["slate_start"]
-        slate_end = request.POST["slate_end"]
-        if slate_start is True and slate_end is True:
-            position = 0
-        elif slate_start is True and slate_end is not True:
-            position = 1
-        elif slate_start is not True and slate_end is True:
-            position = 2
-        else:
-            position = 3
-
         # Crop the clip and add the slate
-        complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, position)     
+        complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, slate_start, slate_end)     
 
         # Delete files made
         @after_this_request
