@@ -69,6 +69,11 @@
     color: red;
 }
 
+.new-audition-form {
+    grid-template-rows: auto auto auto;
+    text-align: center;
+}
+
 .audition-block {
     margin: 20px;
     padding: 10px;

@@ -1,6 +1,11 @@
 {% extends "audition/layout.html" %}
+    {% load static %}
 
     {% block title %}Audition{% endblock %}
+
+    {% block script %}
+        <script src="{% static 'audition/index.js' %}"></script>
+    {% endblock %}
 
     {% block body %}
 

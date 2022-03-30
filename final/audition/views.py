@@ -6,6 +6,7 @@ from django.shortcuts import render
 from django.urls import reverse
 
 from .models import Audition, User, Script
+from .movie import complete, set_end, get_end, time_validate
 
 
 # Index request
@@ -25,7 +26,7 @@ def index(request):
 
 
 # Login
-def login(request):
+def login_view(request):
 
     # If the request is GET then generate the page
     if request.method == "GET":
@@ -93,7 +94,7 @@ def register(request):
 
 # Logout
 @login_required(login_url="login")
-def logout(request):
+def logout_view(request):
 
     # Log the user out and return them to the index
     logout(request)
@@ -102,11 +103,11 @@ def logout(request):
 
 # New audition form
 class NewAudition(forms.Form):
-    title = forms.CharField(label="Title*")
-    role = forms.CharField(label="Role*")
+    title = forms.CharField(label="Title*", widget=forms.TextInput(attrs={"class":"form_field"}))
+    role = forms.CharField(label="Role*", widget=forms.TextInput(attrs={"class":"form_field"}))
     script = forms.CharField(label="Script", required=False)
     scene = forms.CharField(label="Scene", required=False)
-    date = forms.CharField(label="Audition Date*")
+    date = forms.CharField(label="Audition Date*", widget=forms.TextInput(attrs={"class":"form_field"}))
 
 
 # New audition
@@ -198,3 +199,90 @@ def delete_auditon(request):
     audition = Audition.objects.get(pk=audition_id)
     audition.remove()
     return HttpResponseRedirect(reverse("index"))
+
+
+@login_required(login_url="login")
+def self_tape(request, audition_id, scene_id):
+    
+    # For the form to submit video
+    if request.method == "GET":
+        return render(request, "audition/self_tape.html")
+
+    # Process the video
+    else:
+
+        # Project data for the slate
+        user = User.objects.get(pk=request.user.id)
+        audition = Audition.objects.get(pk=audition_id)
+        script = Script.objects.get(pk=scene_id)
+        name = f"{user.firstname} {user.surname}"
+        agent = user.agent
+        pin = user.pin
+        duration = int(request.POST["duration"])
+        project = audition.title
+        role = audition.role
+        scene = script.scene
+                         
+        # Set the name for the final edit
+        if scene is not None:
+            edit_name = (f"{name.upper()} - {role} {project}.mp4")
+        else:
+            edit_name = (f"{name.upper()} - {role} {project} - {scene}.mp4")
+
+        # Load video
+        # Check the user has uploaded a video
+        if not file:
+            return render(request, "audition/self_tape.html", {
+                "message": "Error uploading video"
+            })
+
+        clip = request.files["clip"]
+        clip.save(clip.filename)
+        clip_name = clip.filename
+
+        # Get the crop timings
+        # Set the start time
+        start = request.POST["start"]
+        if start is None:
+            start = "00:00.000"
+
+        # Set the end time
+        set_end(clip_name)
+        end = request.POST["end"]
+        if end is None:
+            end = get_end()
+
+        # Check if the user has entered valid times
+        check = time_validate(start, end)
+        if check == "valid":
+            start = f"00:{start}"
+            end = f"00:{end}"
+        else:
+            return render(request, "audition/self_tape.html", {
+                "message": check
+            })
+
+        # Find out where the user wants the slates
+        slate_start = request.POST["slate_start"]
+        slate_end = request.POST["slate_end"]
+        if slate_start is True and slate_end is True:
+            position = 0
+        elif slate_start is True and slate_end is not True:
+            position = 1
+        elif slate_start is not True and slate_end is True:
+            position = 2
+        else:
+            position = 3
+
+        # Crop the clip and add the slate
+        complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, position)     
+
+        # Delete files made
+        @after_this_request
+        def remove_files(response):
+            os.remove(edit_name)
+            os.remove(clip_name)
+            return response
+
+        # Post to /download
+        return send_file(edit_name, as_attachment=True)

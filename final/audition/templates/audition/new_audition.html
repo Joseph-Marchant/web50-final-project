@@ -7,9 +7,9 @@
     <!--Form for new auditions-->
     <div class="form-outer-container">
         <div class="form-inner-container">
-            <form action="{% url 'new_audition' %}" method="post">
+            <form class="new-audition-form" action="{% url 'new_audition' %}" method="post">
                 {% csrf_token %}
-                <div class="auditon-form">
+                <div class="auditon-form form-fields">
                     <label for="title">Title*</label>
                     {{ form.title }}
                     <label for="role">Role*</label>
