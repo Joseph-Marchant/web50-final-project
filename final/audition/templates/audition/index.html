@@ -9,9 +9,11 @@
 
     {% block body %}
 
+        <h1 class="page-title"></h1>
+
         <!--All auditons view-->
         <div class="all-auditions">
-            <h1 class="page-title">Your Auditions</h1>
+            
 
             <!--If there are auditions, display them-->
             {% if auditions %}
@@ -22,9 +24,8 @@
                         </div>
                         <div class="audition-date-block">
                             <h5 class="audition-date">On {{ audition.date }}</h5>
-                            <button class="audition-buttons" id="view">View</button>
-                            <button class="audition-buttons" id="edit">Edit</button>
-                            <button class="audition-buttons" id="delete">Delete</button>
+                            <button class="audition-buttons view" data-id="{{ audition.id }}">View</button>
+                            <button class="audition-buttons delete" data-id="{{ audition.id }}">Delete</button>
                         </div>
                     </div>
                 {% endfor %}

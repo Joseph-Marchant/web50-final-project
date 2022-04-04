@@ -4,17 +4,19 @@
 
 {% block body %}
 
+    <h1 class="page-title">New Audition</h1>
+
     <!--Form for new auditions-->
     <div class="form-outer-container">
         <div class="form-inner-container">
             <form class="new-audition-form" action="{% url 'new_audition' %}" method="post">
                 {% csrf_token %}
                 <div class="auditon-form form-fields">
-                    <label for="title">Title*</label>
+                    <label class="form-label" for="title">Title*</label>
                     {{ form.title }}
-                    <label for="role">Role*</label>
+                    <label class="form-label" for="role">Role*</label>
                     {{ form.role }}
-                    <label for="date">Date*</label>
+                    <label class="form-label" for="date">Date*</label>
                     {{ form.date }}
                 </div>
                 <div class="script-form">
@@ -25,7 +27,7 @@
                 </div> 
                 <div class="form-buttons-container">
                     <input class="form-button" type="submit" value="Add Audition">
-                    <button class="form-button" id='cancel'>Cancel</button>
+                    <a href="{% url 'index' %}"><div class="form-button">Cancel</div></a>
                 </div>
             </form>
 

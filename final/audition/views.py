@@ -1,10 +1,11 @@
 from django import forms
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect
+from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 import os
+import json
 
 from .models import Audition, User, Script
 from .movie import complete, set_end, get_end, time_validate
@@ -104,11 +105,11 @@ def logout_view(request):
 
 # New audition form
 class NewAudition(forms.Form):
-    title = forms.CharField(label="Title*", widget=forms.TextInput(attrs={"class":"form_field"}))
-    role = forms.CharField(label="Role*", widget=forms.TextInput(attrs={"class":"form_field"}))
-    script = forms.CharField(label="Script", required=False)
-    scene = forms.CharField(label="Scene", required=False)
-    date = forms.CharField(label="Audition Date*", widget=forms.TextInput(attrs={"class":"form_field"}))
+    title = forms.CharField(label="Title*", widget=forms.TextInput(attrs={"class": "form-field"}))
+    role = forms.CharField(label="Role*", widget=forms.TextInput(attrs={"class": "form-field"}))
+    script = forms.CharField(label="Script", required=False, widget=forms.Textarea(attrs={"class": "script-fields", "id": "script-input"}))
+    scene = forms.CharField(label="Scene", required=False, widget=forms.TextInput(attrs={"class": "form-field script-fields"}))
+    date = forms.CharField(label="Audition Date*", widget=forms.TextInput(attrs={"class": "form-field"}))
 
 
 # New audition
@@ -130,13 +131,14 @@ def new_audtion(request):
             # Process the forms information
             user_id = request.user.id
             user = User.objects.get(pk=user_id)
-            audition = Audition.objects.create(title=form.cleaned_data["title"], role=form.cleaned_data["role"], user=user)
+            audition = Audition.objects.create(title=form.cleaned_data["title"], role=form.cleaned_data["role"], date=form.cleaned_data["date"], user=user)
             audition.save()
 
             # Seperate the scripts
             if form.cleaned_data["script"] is not None:
-                scripts = seperate_scripts(form.cleaned_data["script"])
-                scene_form = form.cleaned_data["scene"]
+                scripts_form = form.cleaned_data["script"] + '###'
+                scripts = seperate_scripts(scripts_form)
+                scene_form = form.cleaned_data["scene"] + ','
                 scenes = get_scenes(scene_form)
 
                 # Make a new script for every script
@@ -159,7 +161,7 @@ def seperate_scripts(script):
     stop_point = 0
     for i in range(len(script)):
         if script[i:i+3] == "###":
-            script_cut = script[stop_point:i-1]
+            script_cut = script[stop_point:i]
             scripts.append(script_cut)
             stop_point = i + 3
     return scripts
@@ -170,16 +172,23 @@ def get_scenes(scene_list):
     stop_point = 0
     for i in range(len(scene_list)):
         if scene_list[i] == ",":
-            scene_cut = scene_list[i][stop_point:i]
+            scene_cut = scene_list[stop_point:i]
             scenes.append(scene_cut)
             stop_point = i + 1
     return scenes
 
 
-# Edit audition
-def edit_auditon(request):
-    # Done through JS
-    return HttpResponseRedirect(reverse("index"))
+# View audition
+def view_auditon(request, id):
+    audition = Audition.objects.get(pk=id)
+    return JsonResponse(audition.serialize())
+
+
+# Get Scripts
+def view_scripts(request, id):
+    audition = Audition.objects.get(pk=id)
+    scripts = Script.objects.filter(audition=audition)
+    return JsonResponse([script.serialize() for script in scripts], safe=False)
 
 
 # Mark done

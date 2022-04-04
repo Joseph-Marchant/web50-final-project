@@ -7,5 +7,9 @@ urlpatterns = [
     path("login", views.login_view, name="login"),
     path("register", views.register, name="register"),
     path("logout", views.logout_view, name="logout"),
-    path("new_audition", views.new_audtion, name="new_audition")
+    path("new_audition", views.new_audtion, name="new_audition"),
+
+    # JS Routes
+    path("audition/<int:id>", views.view_auditon, name="audition"),
+    path("script/<int:id>", views.view_scripts, name="scripts")
 ]

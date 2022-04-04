@@ -17,6 +17,14 @@ class Audition(models.Model):
     def __str__(self):
         return f"{self.user} is auditioning for {self.role} in {self.title}"
 
+    def serialize(self):
+        return {
+            "id": self.id,
+            "title": self.title,
+            "role": self.role,
+            "date": self.date
+        }
+
 
 class Script(models.Model):
     scene = models.CharField(max_length=64)
@@ -25,3 +33,10 @@ class Script(models.Model):
 
     def __str__(self):
         return f"{self.scene} for {self.audition}"
+
+    def serialize(self):
+        return {
+            "scene": self.scene,
+            "script": self.script,
+            "id": self.id
+        }
