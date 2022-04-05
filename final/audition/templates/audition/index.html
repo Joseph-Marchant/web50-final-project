@@ -18,7 +18,7 @@
             <!--If there are auditions, display them-->
             {% if auditions %}
                 {% for audition in auditions %}
-                    <div class="audition-block">
+                    <div class="audition-block" id="{{ audition.id }}">
                         <div class="audition-info">
                             <h3 class="audition-title">{{ audition.role }} in {{ audition.title }}</h3>
                         </div>

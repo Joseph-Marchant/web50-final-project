@@ -11,5 +11,7 @@ urlpatterns = [
 
     # JS Routes
     path("audition/<int:id>", views.view_auditon, name="audition"),
-    path("script/<int:id>", views.view_scripts, name="scripts")
+    path("script/<int:id>", views.view_scripts, name="scripts"),
+    path("delete/<int:id>", views.delete_auditon, name="delete"),
+    path("save", views.save_edit, name="save")
 ]

@@ -16,18 +16,11 @@ document.addEventListener('DOMContentLoaded', function() {
 function display_auditions() {
     document.querySelector('.page-title').innerHTML = 'Your Auditions'
     document.querySelector('.all-auditions').style.display = 'block';
-    const single = document.querySelector('.single-audition')
-
-    // Remove any data that was there before
-    while (single.firstChild) {
-        single.removeChild(single.firstChild)
-    }
-    single.style.display = 'none';
+    document.querySelector('.single-audition').style.display = 'none';
 };
 
 // Function for viewing a single audition
 function view_audition(id) {
-    console.log(`view ${id}`);
     const single_audition = document.querySelector('.single-audition');
 
     // Fetch the auditon
@@ -45,7 +38,7 @@ function view_audition(id) {
         date.setAttribute('id', 'single-date');
         single_audition.append(date);
     })
-
+    
     // Fetch the scripts
     fetch(`/script/${id}`, {
         method: 'GET'
@@ -60,20 +53,24 @@ function view_audition(id) {
             var script_display = document.createElement('div');
             script_display.innerHTML = `
                 <div class="script-name">
-                    <textarea disabled="true" class="single-title">${scripts[i].scene}</textarea>
+                    <textarea disabled="true" class="single-title" id=scene-${scripts[i].id}>${scripts[i].scene}</textarea>
                 </div>
                 <div class="script-body">
-                    <textarea disabled="true" class="single-script">${scripts[i].script}</textarea>
+                    <textarea disabled="true" class="single-script" id=body-${scripts[i].id}>${scripts[i].script}</textarea>
                 </div>
                 <div class="script-buttons">
-                    <button class=audition-buttons data-script_id="${scripts[i].id}">Edit</button>
-                    <button class=audition-buttons data-script_id="${scripts[i].id}">Self-Shot</button>
+                    <button class=audition-buttons id="edit-${scripts[i].id}" data-audition_id="${id}" data-script_id="${scripts[i].id}" onclick="edit_script(this)" style="display: block;">Edit</button>
+                    <button class=audition-buttons id="ss-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="self_shot(this)" style="display: block;">Self-Shot</button>
+                    <button class=audition-buttons id="save-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="save_edit(this)" style="display: none;">Save</button>
+                    <button class=audition-buttons id="delete-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="delete_script(this)" style="display: none;">Delete</button>
                 </div>
             `
             script_display.setAttribute('class', 'script-display')
+            script_display.setAttribute('id', `script-${scripts[i].id}`)
             all_scripts.append(script_display)
         }
         all_scripts.setAttribute('class', 'all-scripts')
+        all_scripts.setAttribute('data-audition_id', `${id}`)
         single_audition.append(all_scripts)
     })
 
@@ -82,6 +79,93 @@ function view_audition(id) {
     document.querySelector('.single-audition').style.display = 'block';
 };
 
+// Delete the audition
 function delete_audition(id) {
     console.log(`delete ${id}`);
+
+    // Make the request to the server
+    fetch(`/delete/${id}`, {
+        method: 'POST'
+    })
+
+    // Remove the audition from the page
+    .then(() => {
+        const audition = document.getElementById(`${id}`);
+        audition.style.display = 'none';
+    })
 };
+
+// For editing scripts
+function edit_script(button) {
+
+    // Grab the title and the body of the script
+    const title = document.getElementById(`scene-${button.dataset.script_id}`)
+    const body = document.getElementById(`body-${button.dataset.script_id}`)
+
+    // Update the elements to make the editable
+    title.classList.add('single-title-edit');
+    title.classList.remove('single-title');
+    title.disabled = false;
+    body.classList.add('single-script-edit');
+    body.classList.remove('single-script');
+    body.disabled = false;
+
+    // Hide edit and selfshot buttons and show cancel and delete
+    const edit = document.getElementById(`edit-${button.dataset.script_id}`)
+    edit.style.display = 'none';
+    const ss = document.getElementById(`ss-${button.dataset.script_id}`);
+    ss.style.display = 'none';
+    const save = document.getElementById(`save-${button.dataset.script_id}`);
+    save.style.display = 'block';
+    const del = document.getElementById(`delete-${button.dataset.script_id}`);
+    del.style.display = 'block';
+}
+
+// Save and edit
+function save_edit(button) {
+
+    // Grab the title and the body of the script
+    const title = document.getElementById(`scene-${button.dataset.script_id}`)
+    const body = document.getElementById(`body-${button.dataset.script_id}`)
+
+    // Get the values from title and body
+    const new_title = title.value
+    const new_body = body.value
+    const id = title.id.slice(6)
+
+    // Make fetch request
+    fetch('/save', {
+        method: 'POST',
+        body: JSON.stringify({
+            "scene": new_title,
+            "script": new_body,
+            "id": id
+        })
+    })
+
+    // Handle response
+    .then(response => response.json())
+    .then(result => {
+        console.log(result);
+    });
+
+    // Update the elements to make the uneditable
+    title.classList.add('single-title');
+    title.classList.remove('single-title-edit');
+    title.disabled = true;
+    body.classList.add('single-script');
+    body.classList.remove('single-script-edit');
+    body.disabled = true;
+
+    // Hide save and delete buttons and show edit and selfshot
+    const edit = document.getElementById(`edit-${button.dataset.script_id}`)
+    edit.style.display = 'block';
+    const ss = document.getElementById(`ss-${button.dataset.script_id}`);
+    ss.style.display = 'block';
+    const save = document.getElementById(`save-${button.dataset.script_id}`);
+    save.style.display = 'none';
+    const del = document.getElementById(`delete-${button.dataset.script_id}`);
+    del.style.display = 'none';
+}
+
+// Self shot

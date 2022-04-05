@@ -4,6 +4,7 @@ from django.contrib.auth.decorators import login_required
 from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
+from django.views.decorators.csrf import csrf_exempt
 import os
 import json
 
@@ -191,24 +192,33 @@ def view_scripts(request, id):
     return JsonResponse([script.serialize() for script in scripts], safe=False)
 
 
-# Mark done
-def mark_done(request):
-    # Done through JS
-    return HttpResponseRedirect(reverse("index"))
-
-
-# Mark undone
-def mark_undone(request):
-    # Done through JS
-    return HttpResponseRedirect(reverse("index"))
-
-
+@csrf_exempt
 # Delete audition
-def delete_auditon(request):
-    # JS call
-    audition = Audition.objects.get(pk=audition_id)
-    audition.remove()
+def delete_auditon(request, id):
+    
+    # Find the audition and delete it
+    audition = Audition.objects.get(pk=id)
+    audition.delete()
     return HttpResponseRedirect(reverse("index"))
+
+
+@csrf_exempt
+def save_edit(request):
+    
+    # Get JSON data
+    data = json.loads(request.body)
+    script_id = data.get("id", "")
+    title = data.get("scene", "")
+    script_body = data.get("script", "")
+
+    # Update the script
+    script = Script.objects.get(pk=script_id)
+    script.scene = title
+    script.script = script_body
+    script.save()
+
+    # Return response
+    return JsonResponse({"message": "Script updated."}, status=201)
 
 
 @login_required(login_url="login")
