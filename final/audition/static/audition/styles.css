@@ -245,3 +245,34 @@
     display: grid;
     grid-template-columns: 100px 100px;
 }
+
+.tape-outer-container {
+    width: 100%;
+    padding-left: 35%;
+    padding-right: 35%;
+    padding-top: 30px;
+}
+
+.tape-inner-container{
+    width: 100%;
+    border: 1px solid lightgray;
+    border-radius: 20px;
+}
+
+.tape-form {
+    display: grid;
+    grid-template-rows: 100px 100px 100px 100px;
+}
+
+.slate-location {
+    vertical-align: middle;
+}
+
+.form-bool {
+    width: 20px;
+    height: 20px;
+}
+
+.tape-button {
+    text-align: center;
+}

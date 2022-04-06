@@ -5,6 +5,7 @@ from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
+from django.core.files.storage import FileSystemStorage
 import os
 import json
 
@@ -221,12 +222,33 @@ def save_edit(request):
     return JsonResponse({"message": "Script updated."}, status=201)
 
 
+@csrf_exempt
+# Delete audition
+def delete_script(request, id):
+    
+    # Find the audition and delete it
+    audition = Script.objects.get(pk=id)
+    audition.delete()
+    return JsonResponse({"message": "Script deleted."}, status=201)
+
+
+# Self tape form
+class Selftapeform(forms.Form):
+    duration = forms.IntegerField(label="Duration of slate", widget=forms.TextInput(attrs={"class": "form-field"}))
+    slate_start = forms.BooleanField(label="Start", widget=forms.CheckboxInput(attrs={"class": "form-bool"}))
+    slate_end = forms.BooleanField(label="End", widget=forms.CheckboxInput(attrs={"class": "form-bool"}))
+
+
 @login_required(login_url="login")
 def self_tape(request, scene_id):
     
     # For the form to submit video
     if request.method == "GET":
-        return render(request, "audition/self_tape.html")
+        script = Script.objects.get(pk=scene_id)
+        return render(request, "audition/self_tape.html", {
+            "script": script,
+            "form": Selftapeform()
+        })
 
     # Process the video
     else:
@@ -253,14 +275,15 @@ def self_tape(request, scene_id):
 
         # Load video
         # Check the user has uploaded a video
-        if not file:
+        if not request.FILES["clip"]:
             return render(request, "audition/self_tape.html", {
                 "message": "Error uploading video"
             })
 
-        clip = request.files["clip"]
-        clip.save(clip.filename)
-        clip_name = clip.filename
+        clip = request.FILES["clip"]
+        store = FileSystemStorage()
+        store.save(clip.name, clip)
+        clip_name = clip.name
 
         # Get the crop timings
         # Set the start time
