@@ -61,7 +61,7 @@ function view_audition(id) {
                     </div>
                     <div class="script-buttons">
                         <button class=audition-buttons id="edit-${scripts[i].id}" data-audition_id="${id}" data-script_id="${scripts[i].id}" onclick="edit_script(this)" style="display: block;">Edit</button>
-                        <button class=audition-buttons id="ss-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="self_shot(this)" style="display: block;">Self-Shot</button>
+                        <a href="/self_tape/${scripts[i].id}"><button class=audition-buttons>Self-Shot</button></a>
                         <button class=audition-buttons id="save-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="save_edit(this)" style="display: none;">Save</button>
                         <button class=audition-buttons id="delete-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="delete_script(this)" style="display: none;">Delete</button>
                     </div>
@@ -210,10 +210,4 @@ function self_shot(button) {
     fetch(`/self_tape/${button.dataset.script_id}`, {
         method: 'GET'
     })
-
-    // Handle response
-    .then(response => response.json())
-    .then(result => {
-        console.log(result);
-    });
 }

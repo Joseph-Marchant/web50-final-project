@@ -1,7 +1,6 @@
-from django import forms
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.decorators import login_required
-from django.http import HttpResponse, HttpResponseRedirect, JsonResponse
+from django.http import HttpResponseRedirect, JsonResponse
 from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
@@ -9,6 +8,7 @@ from django.core.files.storage import FileSystemStorage
 import os
 import json
 
+from .forms import NewAudition, Selftapeform
 from .models import Audition, User, Script
 from .movie import complete, set_end, get_end, time_validate
 
@@ -105,15 +105,6 @@ def logout_view(request):
     return HttpResponseRedirect(reverse("index"))
 
 
-# New audition form
-class NewAudition(forms.Form):
-    title = forms.CharField(label="Title*", widget=forms.TextInput(attrs={"class": "form-field"}))
-    role = forms.CharField(label="Role*", widget=forms.TextInput(attrs={"class": "form-field"}))
-    script = forms.CharField(label="Script", required=False, widget=forms.Textarea(attrs={"class": "script-fields", "id": "script-input"}))
-    scene = forms.CharField(label="Scene", required=False, widget=forms.TextInput(attrs={"class": "form-field script-fields"}))
-    date = forms.CharField(label="Audition Date*", widget=forms.TextInput(attrs={"class": "form-field"}))
-
-
 # New audition
 def new_audtion(request):
 
@@ -193,8 +184,8 @@ def view_scripts(request, id):
     return JsonResponse([script.serialize() for script in scripts], safe=False)
 
 
-@csrf_exempt
 # Delete audition
+@csrf_exempt
 def delete_auditon(request, id):
     
     # Find the audition and delete it
@@ -222,21 +213,14 @@ def save_edit(request):
     return JsonResponse({"message": "Script updated."}, status=201)
 
 
-@csrf_exempt
 # Delete audition
+@csrf_exempt
 def delete_script(request, id):
     
     # Find the audition and delete it
     audition = Script.objects.get(pk=id)
     audition.delete()
     return JsonResponse({"message": "Script deleted."}, status=201)
-
-
-# Self tape form
-class Selftapeform(forms.Form):
-    duration = forms.IntegerField(label="Duration of slate", widget=forms.TextInput(attrs={"class": "form-field"}))
-    slate_start = forms.BooleanField(label="Start", widget=forms.CheckboxInput(attrs={"class": "form-bool"}))
-    slate_end = forms.BooleanField(label="End", widget=forms.CheckboxInput(attrs={"class": "form-bool"}))
 
 
 @login_required(login_url="login")
@@ -246,76 +230,94 @@ def self_tape(request, scene_id):
     if request.method == "GET":
         script = Script.objects.get(pk=scene_id)
         return render(request, "audition/self_tape.html", {
-            "script": script,
+            "script": scene_id,
             "form": Selftapeform()
         })
 
     # Process the video
     else:
 
-        # Project data
-        user = User.objects.get(pk=request.user.id)
+        # Check if the form is valid
         script = Script.objects.get(pk=scene_id)
         audition = Audition.objects.get(pk=script.audition.id)
-        name = f"{user.firstname} {user.surname}"
-        agent = user.agent
-        pin = user.pin
-        duration = int(request.POST["duration"])
-        project = audition.title
-        role = audition.role
-        scene = script.scene
-        slate_start = request.POST["slate_start"]
-        slate_end = request.POST["slate_end"]
-                         
-        # Set the name for the final edit
-        if scene is not None:
-            edit_name = (f"{name.upper()} - {role} {project}.mp4")
-        else:
+        user = User.objects.get(pk=audition.user.id)
+        form = Selftapeform(request.POST)
+        if form.is_valid():
+
+            # Project data
+            name = f"{user.first_name} {user.last_name}"
+            agent = user.agent
+            pin = user.pin
+            duration = int(form.cleaned_data["duration"])
+            project = audition.title
+            role = audition.role
+            scene = script.scene
+            slate_start = form.cleaned_data["slate_start"]
+            slate_end = form.cleaned_data["slate_end"]
+                            
+            # Set the name for the final edit
             edit_name = (f"{name.upper()} - {role} {project} - {scene}.mp4")
 
-        # Load video
-        # Check the user has uploaded a video
-        if not request.FILES["clip"]:
+            # Load video
+            # Check the user has uploaded a video
+            if not request.FILES["clip"]:
+                return render(request, "audition/self_tape.html", {
+                    "message": "Error uploading video",
+                    "script": scene_id,
+                    "form": Selftapeform(form)
+                })
+
+            clip = request.FILES["clip"]
+            store = FileSystemStorage()
+            name = store.save(clip.name, clip)
+            clip_name = "./files/" + clip.name
+            url = store.url(name)
+
+            # Get the crop timings
+            # Set the start time
+            start = request.POST["start"]
+            print(f" start is {start}")
+            if start == "":
+                start = "00:00.000"
+
+            # Set the end time
+            set_end(clip_name)
+            end = request.POST["end"]
+            if end == "":
+                end = get_end()
+
+            # Check if the user has entered valid times
+            check = time_validate(start, end)
+            if check == "valid":
+                start = f"00:{start}"
+                end = f"00:{end}"
+            else:
+                return render(request, "audition/self_tape.html", {
+                    "message": check,
+                    "script": scene_id
+                })
+
+            # Crop the clip and add the slate
+            complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, slate_start, slate_end)     
+
+            # Delete files made
+            #@after_this_request
+            #def remove_files(response):
+                #os.remove(f'/files/{edit_name}')
+                #os.remove(f'/files/{clip_name}')
+                #return response
+
+            # Post to /download
             return render(request, "audition/self_tape.html", {
-                "message": "Error uploading video"
+                "script": scene_id,
+                "form": Selftapeform(),
+                "url": url
             })
 
-        clip = request.FILES["clip"]
-        store = FileSystemStorage()
-        store.save(clip.name, clip)
-        clip_name = clip.name
-
-        # Get the crop timings
-        # Set the start time
-        start = request.POST["start"]
-        if start is None:
-            start = "00:00.000"
-
-        # Set the end time
-        set_end(clip_name)
-        end = request.POST["end"]
-        if end is None:
-            end = get_end()
-
-        # Check if the user has entered valid times
-        check = time_validate(start, end)
-        if check == "valid":
-            start = f"00:{start}"
-            end = f"00:{end}"
+        # If the form wasn't valid
         else:
             return render(request, "audition/self_tape.html", {
-                "message": check
+                "message": "Please fill out all fields correctly.",
+                "script": scene_id,
+                "form": Selftapeform(form)
             })
-
-        # Crop the clip and add the slate
-        complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, slate_start, slate_end)     
-
-        # Delete files made
-        @after_this_request
-        def remove_files(response):
-            os.remove(edit_name)
-            os.remove(clip_name)
-            return response
-
-        # Post to /download
-        return send_file(edit_name, as_attachment=True)

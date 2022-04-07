@@ -133,7 +133,7 @@ def time_validate(test_start, test_end):
 
     # If the user has entered an invlaid start time
     if not time_format.match(test_start):
-        return "Invalid start time"
+        return f"{test_start}"
 
     # If the user has entered an invlaid end time
     if not time_format.match(test_end):
