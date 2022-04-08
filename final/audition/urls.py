@@ -11,6 +11,7 @@ urlpatterns = [
     path("logout", views.logout_view, name="logout"),
     path("new_audition", views.new_audtion, name="new_audition"),
     path("self_tape/<str:scene_id>", views.self_tape, name="self_tape"),
+    path("information", views.view_info, name="information"),
 
     # JS Routes
     path("audition/<int:id>", views.view_auditon, name="audition"),

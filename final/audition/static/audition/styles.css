@@ -253,7 +253,7 @@
     padding-top: 30px;
 }
 
-.tape-inner-container{
+.tape-inner-container {
     width: 100%;
     border: 1px solid lightgray;
     border-radius: 20px;
@@ -261,7 +261,7 @@
 
 .tape-form {
     display: grid;
-    grid-template-rows: 100px 100px 100px 100px;
+    grid-template-rows: 100px 100px 100px 125px 100px;
 }
 
 .slate-location {
@@ -273,6 +273,37 @@
     height: 20px;
 }
 
+.tape-buttons {
+    justify-content: center;
+    display: grid;
+    grid-template-columns: 150px 150px;
+}
+
 .tape-button {
+    height: 50px;
     text-align: center;
+    vertical-align: middle;
+}
+
+.crop-timings {
+    display: grid;
+    grid-template-rows: 50px 50px;
+}
+
+.info-form {
+    display: grid;
+    grid-template-rows: auto auto;
+    padding: 20px;
+}
+
+.info-fields {
+    display: grid;
+    grid-template-columns: 150px auto;
+    grid-template-rows: 100px 100px 100px 100px;
+}
+
+.info-buttons {
+    display: grid;
+    grid-template-columns: auto auto;
+    justify-content: center;
 }

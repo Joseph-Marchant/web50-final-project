@@ -1,4 +1,5 @@
 import moviepy.editor as mpy
+from django.core.files.storage import FileSystemStorage
 import re
 
 
@@ -76,8 +77,13 @@ def complete(name, agent, pin, project, role, scene, duration, edit_name, clip_n
                          preset=compression, ffmpeg_params=["-crf", videoquality], logger=None)
     slate_clip.close
     crop.close
+
+    # Return the file to the user
+    store = FileSystemStorage()
+    name = store.save(edit.name, edit)
+    url = store.url(name)
     
-    return
+    return url
 
 
 # Update the global end_vid variable

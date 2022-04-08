@@ -223,6 +223,41 @@ def delete_script(request, id):
     return JsonResponse({"message": "Script deleted."}, status=201)
 
 
+
+# View user information
+def view_info(request):
+
+    # If reuqest is get then display information
+    if request.method == "GET":
+        # Get the user
+        user_id = request.user.id
+        user = User.objects.get(pk=user_id)
+        return render(request, "audition/info.html" ,{
+            "user": user
+        })
+
+    # Otherwise process the information
+    else:
+
+        # Get the required info for the update
+        firstname = request.POST["first-name"]
+        surname = request.POST["last-name"]
+        pin = request.POST["pin"]
+        agent = request.POST["agent"]
+        user= User.objects.get(pk=request.user.id)
+
+        # Make the changes
+        user.first_name = firstname
+        user.last_name = surname
+        user.pin = pin
+        user.agent = agent
+        user.save()
+
+        # Return them to the index
+        return HttpResponseRedirect(reverse("index"))
+
+
+
 @login_required(login_url="login")
 def self_tape(request, scene_id):
     
@@ -298,14 +333,7 @@ def self_tape(request, scene_id):
                 })
 
             # Crop the clip and add the slate
-            complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, slate_start, slate_end)     
-
-            # Delete files made
-            #@after_this_request
-            #def remove_files(response):
-                #os.remove(f'/files/{edit_name}')
-                #os.remove(f'/files/{clip_name}')
-                #return response
+            url = complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, slate_start, slate_end)
 
             # Post to /download
             return render(request, "audition/self_tape.html", {

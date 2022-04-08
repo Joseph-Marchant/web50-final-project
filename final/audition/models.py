@@ -4,7 +4,7 @@ from django.db import models
 
 class User(AbstractUser):
     agent = models.CharField(max_length=100, null=True, blank=True)
-    pin = models.CharField(max_length=11, null=True, blank=True)
+    pin = models.CharField(max_length=14, null=True, blank=True)
     def __str__(self):
         return f"{self.username}"
     pass
