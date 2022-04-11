@@ -61,7 +61,7 @@ function view_audition(id) {
                     </div>
                     <div class="script-buttons">
                         <button class=audition-buttons id="edit-${scripts[i].id}" data-audition_id="${id}" data-script_id="${scripts[i].id}" onclick="edit_script(this)" style="display: block;">Edit</button>
-                        <a href="/self_tape/${scripts[i].id}"><button class=audition-buttons>Self-Shot</button></a>
+                        <a href="/self_tape/${scripts[i].id}" id="ss-${scripts[i].id}"><button class=audition-buttons>Self-Shot</button></a>
                         <button class=audition-buttons id="save-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="save_edit(this)" style="display: none;">Save</button>
                         <button class=audition-buttons id="delete-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="delete_script(this)" style="display: none;">Delete</button>
                     </div>
@@ -159,25 +159,28 @@ function save_edit(button) {
 
 }
 
+// NEEDS FIXING
+
 // Function to hide and show relevant buttond
 function change_buttons(button, edit) {
+    const id = button.dataset.script_id
     if(edit===true) {
-        const edit = document.getElementById(`edit-${button.dataset.script_id}`);
+        const edit = document.getElementById(`edit-${id}`);
         edit.style.display = 'none';
-        const ss = document.getElementById(`ss-${button.dataset.script_id}`);
+        const ss = document.getElementById(`ss-${id}`);
         ss.style.display = 'none';
-        const save = document.getElementById(`save-${button.dataset.script_id}`);
+        const save = document.getElementById(`save-${id}`); 
         save.style.display = 'block';
-        const del = document.getElementById(`delete-${button.dataset.script_id}`);
+        const del = document.getElementById(`delete-${id}`);
         del.style.display = 'block';
     } else {
-        const edit = document.getElementById(`edit-${button.dataset.script_id}`);
+        const edit = document.getElementById(`edit-${id}`);
         edit.style.display = 'block';
-        const ss = document.getElementById(`ss-${button.dataset.script_id}`);
+        const ss = document.getElementById(`ss-${id}`);
         ss.style.display = 'block';
-        const save = document.getElementById(`save-${button.dataset.script_id}`);
+        const save = document.getElementById(`save-${id}`);
         save.style.display = 'none';
-        const del = document.getElementById(`delete-${button.dataset.script_id}`);
+        const del = document.getElementById(`delete-${id}`);
         del.style.display = 'none';
     };
 }
