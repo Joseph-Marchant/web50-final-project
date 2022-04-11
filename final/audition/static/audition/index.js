@@ -48,31 +48,42 @@ function view_audition(id) {
         .then(scripts => {
             console.log(scripts);
 
-            // Display the scripts
-            const all_scripts = document.createElement('div')
-            for (var i = 0; i < scripts.length; i++) {
-                var script_display = document.createElement('div');
-                script_display.innerHTML = `
-                    <div class="script-name">
-                        <textarea disabled="true" class="single-title" id=scene-${scripts[i].id}>${scripts[i].scene}</textarea>
-                    </div>
-                    <div class="script-body">
-                        <textarea disabled="true" class="single-script" id=body-${scripts[i].id}>${scripts[i].script}</textarea>
-                    </div>
-                    <div class="script-buttons">
-                        <button class=audition-buttons id="edit-${scripts[i].id}" data-audition_id="${id}" data-script_id="${scripts[i].id}" onclick="edit_script(this)" style="display: block;">Edit</button>
-                        <a href="/self_tape/${scripts[i].id}" id="ss-${scripts[i].id}"><button class=audition-buttons>Self-Shot</button></a>
-                        <button class=audition-buttons id="save-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="save_edit(this)" style="display: none;">Save</button>
-                        <button class=audition-buttons id="delete-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="delete_script(this)" style="display: none;">Delete</button>
-                    </div>
-                `
-                script_display.setAttribute('class', 'script-display');
-                script_display.setAttribute('id', `script-${scripts[i].id}`);
-                all_scripts.append(script_display);
-            }
-            all_scripts.setAttribute('class', 'all-scripts');
-            all_scripts.setAttribute('data-audition_id', `${id}`);
-            single_audition.append(all_scripts);
+            // If there are no scripts display this
+            if (scripts.length === 0) {
+                const no_scripts = document.createElement('div')
+                no_scripts.innerHTML = '<h2 class="no-auditions">No scripts for this audition</h2>'
+                no_scripts.setAttribute('class', 'audition-block')
+                single_audition.append(no_scripts)
+
+            // Else display the scripts
+            } else {
+
+                // Display the scripts
+                const all_scripts = document.createElement('div')
+                for (var i = 0; i < scripts.length; i++) {
+                    var script_display = document.createElement('div');
+                    script_display.innerHTML = `
+                        <div class="script-name">
+                            <textarea disabled="true" class="single-title" id=scene-${scripts[i].id}>${scripts[i].scene}</textarea>
+                        </div>
+                        <div class="script-body">
+                            <textarea disabled="true" class="single-script" id=body-${scripts[i].id}>${scripts[i].script}</textarea>
+                        </div>
+                        <div class="script-buttons">
+                            <button class=audition-buttons id="edit-${scripts[i].id}" data-audition_id="${id}" data-script_id="${scripts[i].id}" onclick="edit_script(this)" style="display: block;">Edit</button>
+                            <a href="/self_tape/${scripts[i].id}" id="ss-${scripts[i].id}"><button class=audition-buttons>Self-Shot</button></a>
+                            <button class=audition-buttons id="save-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="save_edit(this)" style="display: none;">Save</button>
+                            <button class=audition-buttons id="delete-${scripts[i].id}" data-script_id="${scripts[i].id}" onclick="delete_script(this)" style="display: none;">Delete</button>
+                        </div>
+                    `
+                    script_display.setAttribute('class', 'script-display');
+                    script_display.setAttribute('id', `script-${scripts[i].id}`);
+                    all_scripts.append(script_display);
+                }
+                all_scripts.setAttribute('class', 'all-scripts');
+                all_scripts.setAttribute('data-audition_id', `${id}`);
+                single_audition.append(all_scripts);
+            };
         })
     })
 

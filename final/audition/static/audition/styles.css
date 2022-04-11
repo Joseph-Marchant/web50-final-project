@@ -307,3 +307,8 @@
     grid-template-columns: auto auto;
     justify-content: center;
 }
+
+.download-link {
+    padding-left: 20px;
+    margin-top: 20px;
+}

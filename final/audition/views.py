@@ -5,8 +5,8 @@ from django.shortcuts import render
 from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.core.files.storage import FileSystemStorage
-import os
 import json
+import os
 
 from .forms import NewAudition, Selftapeform
 from .models import Audition, User, Script
@@ -93,7 +93,7 @@ def register(request):
 
         # Log the user in and send them to the index
         login(request, user)
-        return HttpResponseRedirect("index")
+        return HttpResponseRedirect(reverse("index"))
 
 
 # Logout
@@ -128,8 +128,9 @@ def new_audtion(request):
             audition.save()
 
             # Seperate the scripts
-            if form.cleaned_data["script"] is not None:
-                scripts_form = form.cleaned_data["script"] + '###'
+            scripts_form = form.cleaned_data["script"]
+            if len(scripts_form) != 0:
+                scripts_form = scripts_form + '###'
                 scripts = seperate_scripts(scripts_form)
                 scene_form = form.cleaned_data["scene"] + ','
                 scenes = get_scenes(scene_form)
@@ -280,7 +281,7 @@ def self_tape(request, scene_id):
         if form.is_valid():
 
             # Project data
-            name = f"{user.first_name} {user.last_name}"
+            user_name = f"{user.first_name} {user.last_name}"
             agent = user.agent
             pin = user.pin
             duration = int(form.cleaned_data["duration"])
@@ -291,7 +292,7 @@ def self_tape(request, scene_id):
             slate_end = form.cleaned_data["slate_end"]
                             
             # Set the name for the final edit
-            edit_name = (f"{name.upper()} - {role} {project} - {scene}.mp4")
+            edit_name = "files/edited_selftape.mp4"
 
             # Load video
             # Check the user has uploaded a video
@@ -306,12 +307,10 @@ def self_tape(request, scene_id):
             store = FileSystemStorage()
             name = store.save(clip.name, clip)
             clip_name = "./files/" + clip.name
-            url = store.url(name)
 
             # Get the crop timings
             # Set the start time
             start = request.POST["start"]
-            print(f" start is {start}")
             if start == "":
                 start = "00:00.000"
 
@@ -333,13 +332,16 @@ def self_tape(request, scene_id):
                 })
 
             # Crop the clip and add the slate
-            url = complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, slate_start, slate_end)
+            complete(user_name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, slate_start, slate_end)
+
+            # Remove the original clip
+            os.remove(clip_name)
 
             # Post to /download
             return render(request, "audition/self_tape.html", {
                 "script": scene_id,
                 "form": Selftapeform(),
-                "url": url
+                "url": "../" + edit_name
             })
 
         # If the form wasn't valid

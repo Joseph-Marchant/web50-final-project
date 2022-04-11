@@ -18,7 +18,7 @@ urlpatterns = [
     path("script/<int:id>", views.view_scripts, name="scripts"),
     path("delete/<int:id>", views.delete_auditon, name="delete"),
     path("save", views.save_edit, name="save"),
-    path("delete_script<int:id>", views.delete_script, name="delete_script")
+    path("delete_script/<int:id>", views.delete_script, name="delete_script")
 ]
 
 if settings.DEBUG:

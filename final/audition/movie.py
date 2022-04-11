@@ -1,6 +1,6 @@
 import moviepy.editor as mpy
-from django.core.files.storage import FileSystemStorage
 import re
+import os
 
 
 
@@ -16,14 +16,20 @@ method = "compose"
 global vid_end
 
 
-def complete(name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, slate_start, slate_end):
+def complete(user_name, agent, pin, project, role, scene, duration, edit_name, clip_name, start, end, slate_start, slate_end):
     
+    # Delete any previous file
+    try:
+        os.remove(edit_name)
+    except:
+        pass
+
     # Generate the text for the slate
     font = 'Ariel'
     color = 'white'
 
     # name text
-    name_text = mpy.TextClip(name, font=font, fontsize=120, color=color)
+    name_text = mpy.TextClip(user_name, font=font, fontsize=120, color=color)
     name_text = name_text.set_position(('center', 0.3), relative=True)
     name_text = name_text.set_start(0)
     name_text = name_text.set_duration(duration)
@@ -74,16 +80,11 @@ def complete(name, agent, pin, project, role, scene, duration, edit_name, clip_n
     else:
         edit = crop
     edit.write_videofile(edit_name, threads=threads, fps=fps, codec=vcodec,
-                         preset=compression, ffmpeg_params=["-crf", videoquality], logger=None)
+                         preset=compression, ffmpeg_params=["-crf", videoquality])
     slate_clip.close
     crop.close
-
-    # Return the file to the user
-    store = FileSystemStorage()
-    name = store.save(edit.name, edit)
-    url = store.url(name)
     
-    return url
+    return edit
 
 
 # Update the global end_vid variable
