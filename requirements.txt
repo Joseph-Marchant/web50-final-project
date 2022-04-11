@@ -1,0 +1,7 @@
+Python package requirements
+
+- Django
+- Moviepy
+- Image Magick
+- Re
+- Json
