@@ -5,3 +5,4 @@ Python package requirements
 - Image Magick
 - Re
 - Json
+- Os
